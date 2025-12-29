@@ -168,8 +168,8 @@ class DeepCNNApp {
         // 键盘快捷键
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                this.clearAll();
                 this.hideSettings();
+                this.exitFullscreen();
             } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                 e.preventDefault();
                 if (this.canvas) {
@@ -224,28 +224,54 @@ class DeepCNNApp {
     
     toggleFullscreen() {
         const visSection = document.getElementById('vis-section');
+        
+        if (visSection) {
+            const isCurrentlyFullscreen = visSection.classList.contains('fullscreen');
+            
+            if (isCurrentlyFullscreen) {
+                this.exitFullscreen();
+            } else {
+                this.enterFullscreen();
+            }
+        }
+    }
+    
+    enterFullscreen() {
+        const visSection = document.getElementById('vis-section');
         const btn = document.getElementById('btn-fullscreen');
         
         if (visSection) {
-            visSection.classList.toggle('fullscreen');
+            visSection.classList.add('fullscreen');
+            document.body.style.overflow = 'hidden';
             
-            // 更新按钮图标
-            const isFullscreen = visSection.classList.contains('fullscreen');
             if (btn) {
-                btn.innerHTML = isFullscreen 
-                    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
-                       </svg>`
-                    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-                       </svg>`;
+                btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                   </svg>`;
             }
             
-            // 触发3D可视化重新调整大小
             if (this.network3d) {
-                setTimeout(() => {
-                    this.network3d.onResize();
-                }, 100);
+                setTimeout(() => this.network3d.onResize(), 100);
+            }
+        }
+    }
+    
+    exitFullscreen() {
+        const visSection = document.getElementById('vis-section');
+        const btn = document.getElementById('btn-fullscreen');
+        
+        if (visSection && visSection.classList.contains('fullscreen')) {
+            visSection.classList.remove('fullscreen');
+            document.body.style.overflow = '';
+            
+            if (btn) {
+                btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                   </svg>`;
+            }
+            
+            if (this.network3d) {
+                setTimeout(() => this.network3d.onResize(), 100);
             }
         }
     }

@@ -386,37 +386,44 @@ body {
 .visualization-section {
     grid-column: 2;
     grid-row: 1 / 2;
+    display: flex;
+    flex-direction: column;
 }
 
 .visualization-section.fullscreen {
     position: fixed;
     inset: 0;
     z-index: 900;
-    grid-column: 1;
-    grid-row: 1;
     margin: 0;
     border-radius: 0;
+    background: var(--color-bg);
 }
 
 .visualization-section.fullscreen .card-body {
-    height: calc(100vh - 60px);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .visualization-section.fullscreen #network-3d {
-    height: calc(100vh - 120px);
+    flex: 1;
+    height: auto !important;
+    min-height: 0;
+}
+
+.visualization-section.fullscreen .vis-controls {
+    flex-shrink: 0;
 }
 
 .vis-container {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
-    height: 100%;
 }
 
 #network-3d {
     width: 100%;
-    height: 500px;
-    flex: 1;
+    height: 320px;
     background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
 }
