@@ -179,6 +179,13 @@ class GradCAM:
         # 叠加
         overlay = cv2.addWeighted(img_rgb, 1 - alpha, heatmap, alpha, 0)
         
+        # 逆变换：将图像旋转回用户视角
+        # 因为预处理时做了 TRANSPOSE + FLIP_LEFT_RIGHT，需要逆操作
+        # 逆时针旋转90度可以恢复原始方向
+        img_rgb = cv2.rotate(img_rgb, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        heatmap = cv2.rotate(heatmap, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        overlay = cv2.rotate(overlay, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        
         return heatmap, overlay, pred_class, confidence
 
 

@@ -283,13 +283,6 @@ class InferenceEngine:
             for idx, prob in zip(top5_indices, top5_probs)
         ]
         
-        # 反向转置 Grad-CAM 图像以匹配用户输入方向
-        # 原始转换: TRANSPOSE -> FLIP_LEFT_RIGHT
-        # 反向转换: FLIP_LEFT_RIGHT -> TRANSPOSE
-        if from_canvas:
-            heatmap = np.fliplr(heatmap.transpose(1, 0, 2))
-            overlay = np.fliplr(overlay.transpose(1, 0, 2))
-        
         result = {
             'prediction': DeepCharCNN.idx_to_class(pred_class),
             'confidence': confidence,
@@ -325,11 +318,8 @@ class InferenceEngine:
         img = img * 0.5 + 0.5
         img = np.clip(img * 255, 0, 255).astype(np.uint8)
         
-        # 反向转置以匹配用户输入方向
-        # 原始转换: TRANSPOSE -> FLIP_LEFT_RIGHT
-        # 反向转换: FLIP_LEFT_RIGHT -> TRANSPOSE
-        if from_canvas:
-            img = np.fliplr(img.T)
+        # 逆变换：将图像旋转回用户视角（与Grad-CAM保持一致）
+        img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
         
         return numpy_to_base64(img)
 
