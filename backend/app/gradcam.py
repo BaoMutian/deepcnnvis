@@ -199,6 +199,7 @@ class LayerActivationExtractor:
         self.model = model
         self.device = device or next(model.parameters()).device
         self.activations: Dict[str, torch.Tensor] = {}
+        self.input_tensor: Optional[torch.Tensor] = None
         
         # 注册钩子
         self._register_hooks()
@@ -211,18 +212,25 @@ class LayerActivationExtractor:
                 self.activations[name] = output.detach()
             return hook
         
-        # 注册stem
+        # 注册stem - 同时捕获输入
         if hasattr(self.model, 'stem'):
-            self.model.stem.register_forward_hook(get_hook('stem'))
+            def stem_hook(module, input, output):
+                self.activations['stem'] = output.detach()
+                # 保存输入用于input层可视化
+                if len(input) > 0:
+                    self.input_tensor = input[0].detach()
+            self.model.stem.register_forward_hook(stem_hook)
         
         # 注册各个stage
         for name in ['stage1', 'stage2', 'stage3']:
             if hasattr(self.model, name):
                 getattr(self.model, name).register_forward_hook(get_hook(name))
         
-        # 注册全局池化后
-        if hasattr(self.model, 'global_pool'):
-            self.model.global_pool.register_forward_hook(get_hook('global_pool'))
+        # 注册classifier中的第一个Linear层后的ReLU输出 (fc1)
+        if hasattr(self.model, 'classifier'):
+            # classifier[1] 是第一个Linear, classifier[2] 是ReLU
+            if len(self.model.classifier) > 2:
+                self.model.classifier[2].register_forward_hook(get_hook('fc1'))
     
     def extract(
         self, 
@@ -239,6 +247,7 @@ class LayerActivationExtractor:
         """
         self.model.eval()
         self.activations.clear()
+        self.input_tensor = None
         
         input_tensor = input_tensor.to(self.device)
         
@@ -247,6 +256,24 @@ class LayerActivationExtractor:
         
         # 处理激活数据用于传输
         processed = {}
+        
+        # 添加输入层数据
+        if self.input_tensor is not None:
+            inp = self.input_tensor.squeeze(0)  # [1, H, W] 或 [H, W]
+            if inp.dim() == 3:
+                inp = inp.squeeze(0)  # [H, W]
+            # 下采样到8x8
+            inp_resized = F.adaptive_avg_pool2d(
+                inp.unsqueeze(0).unsqueeze(0), (8, 8)
+            ).squeeze()
+            processed['input'] = {
+                'shape': list(inp.shape),
+                'values': inp_resized.cpu().numpy().flatten().tolist(),
+                'mean': float(inp.mean()),
+                'std': float(inp.std()),
+                'max': float(inp.max())
+            }
+        
         for name, activation in self.activations.items():
             act = activation.squeeze(0)  # 移除batch维度
             
@@ -289,6 +316,16 @@ class LayerActivationExtractor:
                     'std': float(act.std()),
                     'max': float(act.max())
                 }
+        
+        # 添加输出层数据 (softmax后的概率)
+        probs = F.softmax(output, dim=1).squeeze(0)
+        processed['output'] = {
+            'shape': [62],
+            'values': probs.cpu().numpy().tolist(),
+            'mean': float(probs.mean()),
+            'std': float(probs.std()),
+            'max': float(probs.max())
+        }
         
         return output, processed
 
