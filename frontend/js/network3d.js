@@ -334,12 +334,33 @@ class Network3DVisualizer {
         }
     }
     
+    // 类别标签到索引的映射 (0-9, A-Z, a-z)
+    labelToIndex(label) {
+        if (!label || label.length !== 1) return -1;
+        const char = label.charAt(0);
+        const code = char.charCodeAt(0);
+        
+        // 0-9 -> 索引 0-9
+        if (code >= 48 && code <= 57) {
+            return code - 48;
+        }
+        // A-Z -> 索引 10-35
+        if (code >= 65 && code <= 90) {
+            return code - 65 + 10;
+        }
+        // a-z -> 索引 36-61
+        if (code >= 97 && code <= 122) {
+            return code - 97 + 36;
+        }
+        return -1;
+    }
+    
     highlightPrediction(classIndex, top5) {
         // 高亮输出层的预测结果
         const outputLayer = this.layers[this.layers.length - 1];
         if (!outputLayer) return;
         
-        // 重置所有神经元
+        // 重置所有神经元为低亮度
         outputLayer.neurons.forEach((neuron, idx) => {
             gsap.to(neuron.material, {
                 opacity: 0.3,
@@ -351,13 +372,20 @@ class Network3DVisualizer {
                 z: 0.8,
                 duration: 0.3
             });
+            // 重置颜色为中性
+            gsap.to(neuron.material.color, {
+                r: this.options.colorScheme.neutral.r,
+                g: this.options.colorScheme.neutral.g,
+                b: this.options.colorScheme.neutral.b,
+                duration: 0.3
+            });
         });
         
-        // 高亮top5
+        // 高亮top5 - 使用正确的类别索引
         if (top5) {
             top5.forEach(([label, prob], rank) => {
-                const idx = rank; // 简化：使用排名作为索引
-                if (idx < outputLayer.neurons.length) {
+                const idx = this.labelToIndex(label);  // 根据标签获取正确的索引
+                if (idx >= 0 && idx < outputLayer.neurons.length) {
                     const neuron = outputLayer.neurons[idx];
                     
                     gsap.to(neuron.material, {
@@ -373,6 +401,7 @@ class Network3DVisualizer {
                         duration: 0.3
                     });
                     
+                    // rank 0 是最高概率，颜色最暖（红色）
                     const color = new THREE.Color().setHSL(0.3 - rank * 0.06, 0.8, 0.5);
                     gsap.to(neuron.material.color, {
                         r: color.r,
