@@ -157,6 +157,14 @@ class DeepCNNApp {
             });
         }
         
+        // 全屏按钮
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+        if (btnFullscreen) {
+            btnFullscreen.addEventListener('click', () => {
+                this.toggleFullscreen();
+            });
+        }
+        
         // 键盘快捷键
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -211,6 +219,34 @@ class DeepCNNApp {
         const panel = document.getElementById('settings-panel');
         if (panel) {
             panel.classList.remove('visible');
+        }
+    }
+    
+    toggleFullscreen() {
+        const visSection = document.getElementById('vis-section');
+        const btn = document.getElementById('btn-fullscreen');
+        
+        if (visSection) {
+            visSection.classList.toggle('fullscreen');
+            
+            // 更新按钮图标
+            const isFullscreen = visSection.classList.contains('fullscreen');
+            if (btn) {
+                btn.innerHTML = isFullscreen 
+                    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                       </svg>`
+                    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                       </svg>`;
+            }
+            
+            // 触发3D可视化重新调整大小
+            if (this.network3d) {
+                setTimeout(() => {
+                    this.network3d.onResize();
+                }, 100);
+            }
         }
     }
     

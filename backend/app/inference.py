@@ -181,6 +181,11 @@ class InferenceEngine:
         img = Image.fromarray(img_array)
         img = img.resize((self.img_size, self.img_size), Image.Resampling.LANCZOS)
         
+        # 关键：EMNIST训练数据是转置的，需要对用户输入做相同变换
+        # 转置图像以匹配训练数据格式
+        img = img.transpose(Image.Transpose.TRANSPOSE)
+        img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        
         # 转换为float并归一化
         img_array = np.array(img, dtype=np.float32)
         img_array = img_array / 255.0

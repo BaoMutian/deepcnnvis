@@ -88,12 +88,17 @@
                 </section>
                 
                 <!-- 3D Visualization Section -->
-                <section class="visualization-section card">
+                <section class="visualization-section card" id="vis-section">
                     <div class="card-header">
                         <div>
                             <h2 class="card-title">神经网络3D可视化</h2>
                             <p class="card-subtitle">实时展示各层神经元激活状态</p>
                         </div>
+                        <button class="btn btn-secondary btn-icon" id="btn-fullscreen" title="全屏">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                            </svg>
+                        </button>
                     </div>
                     <div class="card-body vis-container">
                         <div id="network-3d"></div>
