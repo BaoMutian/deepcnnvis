@@ -388,29 +388,17 @@ body {
     grid-row: 1 / 2;
     display: flex;
     flex-direction: column;
-    position: relative;
-    width: auto;
-    height: auto;
-    top: auto;
-    left: auto;
-    right: auto;
-    bottom: auto;
+    min-width: 0;  /* 防止grid子元素溢出 */
+    overflow: hidden;  /* 防止内部canvas撑开容器 */
 }
 
 .visualization-section.fullscreen {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    position: fixed;
+    inset: 0;
     z-index: 900;
     margin: 0;
     border-radius: 0;
     background: var(--color-bg);
-    grid-column: auto;
-    grid-row: auto;
 }
 
 .visualization-section.fullscreen .card-body {
@@ -437,9 +425,11 @@ body {
 
 #network-3d {
     width: 100%;
+    max-width: 100%;  /* 防止超出父容器 */
     height: 600px;
     background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
+    overflow: hidden;  /* 裁剪超出的canvas */
 }
 
 .vis-controls {
