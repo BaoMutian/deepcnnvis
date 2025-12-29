@@ -149,18 +149,19 @@ class DeepCNNApp {
             }
         });
         
-        // 设置按钮 - 调整画笔粗细
+        // 设置按钮
         const btnSettings = document.getElementById('btn-settings');
         if (btnSettings) {
             btnSettings.addEventListener('click', () => {
-                this.showSettingsDialog();
+                this.toggleSettings();
             });
-        });
+        }
         
         // 键盘快捷键
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.clearAll();
+                this.hideSettings();
             } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                 e.preventDefault();
                 if (this.canvas) {
@@ -168,6 +169,49 @@ class DeepCNNApp {
                 }
             }
         });
+    }
+    
+    toggleSettings() {
+        let panel = document.getElementById('settings-panel');
+        
+        if (!panel) {
+            // 创建设置面板
+            panel = document.createElement('div');
+            panel.id = 'settings-panel';
+            panel.className = 'settings-panel';
+            panel.innerHTML = `
+                <div class="settings-header">
+                    <span>画笔设置</span>
+                    <button class="settings-close" onclick="app.hideSettings()">×</button>
+                </div>
+                <div class="settings-item">
+                    <label>画笔粗细</label>
+                    <input type="range" id="brush-size" min="4" max="32" value="16">
+                    <span id="brush-size-value">16px</span>
+                </div>
+            `;
+            document.body.appendChild(panel);
+            
+            // 绑定滑块事件
+            const slider = document.getElementById('brush-size');
+            const valueDisplay = document.getElementById('brush-size-value');
+            slider.addEventListener('input', (e) => {
+                const size = parseInt(e.target.value);
+                valueDisplay.textContent = size + 'px';
+                if (this.canvas) {
+                    this.canvas.setLineWidth(size);
+                }
+            });
+        }
+        
+        panel.classList.toggle('visible');
+    }
+    
+    hideSettings() {
+        const panel = document.getElementById('settings-panel');
+        if (panel) {
+            panel.classList.remove('visible');
+        }
     }
     
     onDrawStart() {
@@ -339,60 +383,6 @@ class DeepCNNApp {
         if (this.elements.loadingOverlay) {
             this.elements.loadingOverlay.classList.toggle('visible', show);
         }
-    }
-    
-    showSettingsDialog() {
-        // 创建设置对话框
-        const existingDialog = document.querySelector('.settings-dialog');
-        if (existingDialog) {
-            existingDialog.remove();
-            return;
-        }
-        
-        const currentWidth = this.canvas ? this.canvas.options.lineWidth : 16;
-        
-        const dialog = document.createElement('div');
-        dialog.className = 'settings-dialog';
-        dialog.innerHTML = `
-            <div class="settings-content">
-                <div class="settings-header">
-                    <span>画笔设置</span>
-                    <button class="settings-close">&times;</button>
-                </div>
-                <div class="settings-body">
-                    <label>
-                        <span>画笔粗细: <strong id="line-width-value">${currentWidth}px</strong></span>
-                        <input type="range" id="line-width-slider" min="4" max="32" value="${currentWidth}">
-                    </label>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(dialog);
-        
-        // 绑定事件
-        const slider = dialog.querySelector('#line-width-slider');
-        const valueDisplay = dialog.querySelector('#line-width-value');
-        const closeBtn = dialog.querySelector('.settings-close');
-        
-        slider.addEventListener('input', (e) => {
-            const width = parseInt(e.target.value);
-            valueDisplay.textContent = width + 'px';
-            if (this.canvas) {
-                this.canvas.setLineWidth(width);
-            }
-        });
-        
-        closeBtn.addEventListener('click', () => {
-            dialog.remove();
-        });
-        
-        // 点击外部关闭
-        dialog.addEventListener('click', (e) => {
-            if (e.target === dialog) {
-                dialog.remove();
-            }
-        });
     }
 }
 
