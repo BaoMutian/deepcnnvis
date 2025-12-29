@@ -162,7 +162,7 @@ class GradCAM:
         heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
         
         # 获取原始图像
-        img = input_tensor.squeeze().cpu().numpy()
+        img = input_tensor.squeeze().detach().cpu().numpy()
         
         # 反归一化 (假设使用 mean=0.5, std=0.5)
         img = img * 0.5 + 0.5
@@ -251,7 +251,7 @@ class LayerActivationExtractor:
                 # 对激活图进行下采样以减少传输数据量
                 # 只保留前N个最活跃的通道
                 n_top = min(32, act.shape[0])
-                top_indices = channel_activations.argsort()[-n_top:][::-1]
+                top_indices = channel_activations.argsort()[-n_top:][::-1].copy()  # copy()修复负步长问题
                 
                 # 获取这些通道的下采样激活图
                 h, w = act.shape[1], act.shape[2]
