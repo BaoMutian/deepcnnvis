@@ -147,6 +147,16 @@ async def predict_upload(file: UploadFile = File(...)):
 frontend_path = Path(__file__).parent.parent.parent / "frontend"
 
 if frontend_path.exists():
+    # 挂载CSS和JS目录到对应路径
+    css_path = frontend_path / "css"
+    js_path = frontend_path / "js"
+    
+    if css_path.exists():
+        app.mount("/css", StaticFiles(directory=str(css_path)), name="css")
+    if js_path.exists():
+        app.mount("/js", StaticFiles(directory=str(js_path)), name="js")
+    
+    # 通用静态文件
     app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
     
     @app.get("/")
